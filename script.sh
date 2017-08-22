@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -eux
+# set -eux
+set -eu
 
 
 ###
@@ -17,6 +18,11 @@ readonly NVIDIA_SRC="/etc/apt/sources.list.d/graphics-drivers-ubuntu-ppa-xenial.
 readonly MINICONDA_SCRIPT="Miniconda3-latest-Linux-x86_64.sh"
 readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
 
+readonly VBOX_PPA="deb http://download.virtualbox.org/virtualbox/debian xenial contrib"
+
+readonly VAGRANT_PKG="vagrant_1.9.7_x86_64.deb"
+readonly VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.9.7/$VAGRANT_PKG"
+
 
 ###
 # Funções
@@ -24,19 +30,22 @@ readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
 
 is_superuser()
 {
-    if [[ "$(id -u)" -ne 0 ]] || \                                      # check sudo
-        [[ -z "$DESK_ENV" ]] || \                                       # check -E
-        [[ ! "$(echo $PATH | grep -o games)" ]]                         # check $PATH
+    echo -e "\n###### Verificando superusuário e variáveis de ambiente ######\n"
+
+    if [[ "$(id -u)" -ne 0 ]] || [[ -z "$DESK_ENV" ]] || \
+        [[ ! "$(echo "$PATH" | grep -o games)" ]]
     then
         echo "Executar o script como superusuário (sudo)"
         echo "e preservando as variáveis de ambiente (opção -E):"
-        echo "\$ sudo -E \"PATH=\$PATH\" ./$(basename $0)"
+        echo "\$ sudo -E \"PATH=\$PATH\" ./$(basename "$0")"
         exit 1
     fi
 }
 
 is_ubuntu_gnome_64()
 {
+    echo -e "\n###### Verificando OS ######\n"
+
     if [[ "$CODENAME" != "xenial" ]] || [[ "$DESK_ENV" != "gnome" ]] || \
         [[ "$ARQ_PROC" -ne 64 ]]
     then
@@ -48,12 +57,16 @@ is_ubuntu_gnome_64()
 
 update_upgrade()
 {
+    echo -e "\n###### Update & Upgrade ######\n"
+
     apt-get update
     apt-get -y dist-upgrade
 }
 
 remove_clean()
 {
+    echo -e "\n###### Limpando cache ######\n"
+
     apt-get -y autoremove
     apt-get -y autoclean
     apt-get -y clean
@@ -61,39 +74,72 @@ remove_clean()
 
 install_base()
 {
-    apt-get -y install ubuntu-restricted-extras
-}
+    echo -e "\n###### Instalando pacotes de base ######\n"
 
-install_nvidia()
-{
-    if [[ ! -s "$NVIDIA_SRC" ]]; then
-        add-apt-repository -y "$NVIDIA_PPA"
-        apt-get update
-    fi
+    apt-get -y install ubuntu-restricted-extras build-essential dkms
 }
 
 install_tools()
 {
-    apt-get -y install vim-nox git tmux tree iotop glances curl build-essential
+    echo -e "\n###### Instalando ferramentas de linha de comando ######\n"
+
+    apt-get -y install tree iotop glances curl synaptic ufw
 }
 
 install_apps()
 {
-    apt-get -y install vlc goldendict meld pyrenamer gimp inkscape mypaint nautilus-dropbox
+    echo -e "\n###### Instalando aplicativos gráficos ######\n"
+
+    apt-get -y install vlc goldendict meld pyrenamer gimp inkscape mypaint nautilus-dropbox \
+        thunderbird geogebra gelemental
+}
+
+install_devel()
+{
+    echo -e "\n###### Instalando development tools ######\n"
+
+    apt-get -y install vim-nox git tmux shellcheck
+}
+
+install_vm()
+{
+    if [[ ! "$(dpkg -l virtualbox-5.1)" ]]; then
+        echo -e "\n###### Instalando VirtualBox ######\n"
+
+        if [[ ! "$(grep "$VBOX_PPA" /etc/apt/sources.list)" ]]; then
+            echo -e "\n# VirtualBox" >> /etc/apt/sources.list
+            echo "deb http://download.virtualbox.org/virtualbox/debian xenial contrib" >> /etc/apt/sources.list
+            wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
+            apt-get -y update
+        fi
+
+        apt-get -y install virtualbox-5.1
+    fi
+
+    if [[ ! "$(dpkg -l vagrant)" ]]; then
+        echo -e "\n###### Instalando Vagrant ######\n"
+
+        if [[ ! -s "./$VAGRANT_PKG" ]]; then
+            wget "$VAGRANT_URL"
+        fi
+        dpkg -i "./$VAGRANT_PKG"
+    fi
 }
 
 install_js_stack()
 {
-    # Node.js
     if [[ ! "$(dpkg -l nodejs)" ]]; then
+        echo -e "\n###### Instalando Node.js ######\n"
+
         curl -sSL https://deb.nodesource.com/setup_6.x -o nodesource_setup.sh
         bash nodesource_setup.sh
         apt-get -y install nodejs
         npm install npm@latest -g
     fi
 
-    # MongoDB
     if [[ ! "$(dpkg -l mongodb-org)" ]]; then
+        echo -e "\n###### Instalando MongoDB ######\n"
+
         apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
         echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
         apt-get update
@@ -103,14 +149,27 @@ install_js_stack()
 
 install_py_stack()
 {
-    # Miniconda
     if [[ ! "$(conda --version)" ]]; then
         if [[ ! -s "./$MINICONDA_SCRIPT" ]]; then
             wget "$MINICONDA_URL"
         fi
+
+        echo -e "\n###### Instalando Miniconda ######\n"
+
         bash "$MINICONDA_SCRIPT"
     fi
     conda update conda
+}
+
+install_nvidia()
+{
+    if [[ ! -s "$NVIDIA_SRC" ]]; then
+        echo -e "\n###### Instalando Nvidia drivers ######\n"
+
+        add-apt-repository -y "$NVIDIA_PPA"
+        apt-get update
+        apt-get install nvidia-378 nvidia-opencl-icd-378 nvidia-prime nvidia-settings
+    fi
 }
 
 
@@ -124,9 +183,11 @@ is_ubuntu_gnome_64
 update_upgrade
 
 install_base
-install_nvidia
 install_tools
 install_apps
+install_vm
+install_devel
+install_nvidia
 
 install_js_stack
 install_py_stack

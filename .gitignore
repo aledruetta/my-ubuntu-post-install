@@ -1,3 +1,4 @@
 *.sw[pon]
 Miniconda*.sh
 nodesource*.sh
+vagrant*.deb
