@@ -23,6 +23,9 @@ readonly VBOX_PPA="deb http://download.virtualbox.org/virtualbox/debian xenial c
 readonly VAGRANT_PKG="vagrant_1.9.7_x86_64.deb"
 readonly VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.9.7/$VAGRANT_PKG"
 
+readonly CHROME_PKG="google-chrome-stable_current_amd64.deb"
+readonly CHROME_URL="https://dl.google.com/linux/direct/$CHROME_PKG"
+
 
 ###
 # Funções
@@ -91,14 +94,15 @@ install_apps()
     echo -e "\n###### Instalando aplicativos gráficos ######\n"
 
     apt-get -y install vlc goldendict meld pyrenamer gimp inkscape mypaint nautilus-dropbox \
-        thunderbird geogebra gelemental
+        thunderbird geogebra gelemental agave
 }
 
 install_devel()
 {
     echo -e "\n###### Instalando development tools ######\n"
 
-    apt-get -y install vim-nox git tmux shellcheck
+    apt-get -y install vim-nox git tmux shellcheck openjdk-8-jdk
+    snap install atom --classic
 }
 
 install_vm()
@@ -122,7 +126,7 @@ install_vm()
         if [[ ! -s "./$VAGRANT_PKG" ]]; then
             wget "$VAGRANT_URL"
         fi
-        dpkg -i "./$VAGRANT_PKG"
+        dpkg -i ./"$VAGRANT_PKG"
     fi
 }
 
@@ -161,6 +165,18 @@ install_py_stack()
     conda update conda
 }
 
+install_chrome()
+{
+    if [[ ! "$(google-chrome --version)" ]]; then
+        echo -e "\n###### Instalando Google Chrome ######\n"
+
+        if [[ ! -s "./$CHROME_PKG" ]]; then
+            wget "$CHROME_URL"
+        fi
+        dpkg -i ./"$CHROME_PKG"
+    fi
+}
+
 install_nvidia()
 {
     if [[ ! -s "$NVIDIA_SRC" ]]; then
@@ -187,10 +203,12 @@ install_tools
 install_apps
 install_vm
 install_devel
-install_nvidia
 
 install_js_stack
 install_py_stack
+
+install_chrome
+install_nvidia
 
 remove_clean
 
