@@ -13,7 +13,7 @@ readonly DESK_ENV="$(env | grep DESKTOP_SESSION= | cut -d'=' -f2)"
 readonly ARQ_PROC="$(getconf LONG_BIT)"
 
 readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
-readonly NVIDIA_SRC="/etc/apt/sources.list.d/graphics-drivers-ubuntu-ppa-xenial.list"
+readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
 
 readonly MINICONDA_SCRIPT="Miniconda3-latest-Linux-x86_64.sh"
 readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
@@ -25,6 +25,9 @@ readonly VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.9.7/$VAGRANT_PKG"
 
 readonly CHROME_PKG="google-chrome-stable_current_amd64.deb"
 readonly CHROME_URL="https://dl.google.com/linux/direct/$CHROME_PKG"
+
+readonly PAPIRUS_SRC="papirus-ubuntu-papirus-xenial.list"
+readonly PAPIRUS_PPA="ppa:papirus/papirus"
 
 
 ###
@@ -90,7 +93,8 @@ install_tools()
 {
     echo -e "\n###### Instalando ferramentas de linha de comando ######\n"
 
-    apt-get -y install tree iotop glances curl synaptic ufw
+    apt-get -y install tree iotop glances curl synaptic ufw p7zip-full \
+        p7zip-rar
 
     if [[ "$(ufw status | grep inactive)" ]]; then
 
@@ -193,9 +197,20 @@ install_chrome()
     fi
 }
 
+install_themes()
+{
+    if [[ ! -s "/etc/apt/sources.list.d/$PAPIRUS_SRC" ]]; then
+        echo -e "\n###### Instalando Papirus Icon Theme ######\n"
+
+        add-apt-repository -y "$PAPIRUS_PPA"
+        apt-get update
+        apt-get -y install papirus-icon-theme
+    fi
+}
+
 install_nvidia()
 {
-    if [[ ! -s "$NVIDIA_SRC" ]]; then
+    if [[ ! -s "/etc/apt/sources.list.d/$NVIDIA_SRC" ]]; then
         echo -e "\n###### Instalando Nvidia drivers ######\n"
 
         add-apt-repository -y "$NVIDIA_PPA"
@@ -207,6 +222,8 @@ install_nvidia()
 
 ###
 # Parte principal do script
+#
+# Descomentar as categorias que deseja instalar
 ######
 
 is_superuser
@@ -214,17 +231,18 @@ is_ubuntu_gnome_64
 
 update_upgrade
 
-install_base
-install_tools
-install_apps
-install_vm
-install_devel
+# install_base
+# install_tools
+# install_apps
+# install_vm
+# install_devel
 
-install_js_stack
-install_py_stack
+# install_js_stack
+# install_py_stack
 
-install_chrome
-install_nvidia
+# install_chrome
+# install_themes
+# install_nvidia
 
 remove_clean
 
