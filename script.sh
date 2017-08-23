@@ -42,6 +42,8 @@ is_superuser()
         echo "e preservando as variáveis de ambiente (opção -E):"
         echo "\$ sudo -E \"PATH=\$PATH\" ./$(basename "$0")"
         exit 1
+    else
+        echo "Ok!"
     fi
 }
 
@@ -55,6 +57,8 @@ is_ubuntu_gnome_64()
         echo "Script post-install para Ubuntu Gnome 16.04 LTS 64-bit"
         echo "Versão do sistema incompatível"
         exit 1
+    else
+        echo "Ok!"
     fi
 }
 
@@ -87,6 +91,15 @@ install_tools()
     echo -e "\n###### Instalando ferramentas de linha de comando ######\n"
 
     apt-get -y install tree iotop glances curl synaptic ufw
+
+    if [[ "$(ufw status | grep inactive)" ]]; then
+
+        echo -e "\n###### Configurando UFW  ######\n"
+
+        ufw default deny incoming
+        ufw default allow outgoing
+        ufw enable
+    fi
 }
 
 install_apps()
@@ -102,6 +115,9 @@ install_devel()
     echo -e "\n###### Instalando development tools ######\n"
 
     apt-get -y install vim-nox git tmux shellcheck openjdk-8-jdk
+
+    echo -e "\n###### Instalando Atom ######\n"
+
     snap install atom --classic
 }
 
