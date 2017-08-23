@@ -6,7 +6,7 @@ set -eu
 
 ###
 # Constantes
-######
+############
 
 readonly CODENAME="$(lsb_release -cs)"
 readonly DESK_ENV="$(env | grep DESKTOP_SESSION= | cut -d'=' -f2)"
@@ -29,10 +29,13 @@ readonly CHROME_URL="https://dl.google.com/linux/direct/$CHROME_PKG"
 readonly PAPIRUS_SRC="papirus-ubuntu-papirus-xenial.list"
 readonly PAPIRUS_PPA="ppa:papirus/papirus"
 
+readonly NUMIX_SRC="numix-ubuntu-ppa-xenial.list"
+readonly NUMIX_PPA="ppa:numix/ppa"
+
 
 ###
 # Funções
-######
+############
 
 is_superuser()
 {
@@ -86,7 +89,8 @@ install_base()
 {
     echo -e "\n###### Instalando pacotes de base ######\n"
 
-    apt-get -y install ubuntu-restricted-extras build-essential dkms
+    apt-get -y install ubuntu-restricted-extras build-essential dkms intel-microcode \
+      linux-firmware
 }
 
 install_tools()
@@ -206,6 +210,14 @@ install_themes()
         apt-get update
         apt-get -y install papirus-icon-theme
     fi
+
+    if [[ ! -s "/etc/apt/sources.list.d/$NUMIX_SRC" ]]; then
+        echo -e "\n###### Instalando Numix Theme ######\n"
+
+        add-apt-repository -y "$NUMIX_PPA"
+        apt-get update
+        apt-get -y install numix-icon-theme numix-gtk-theme numix-folders
+    fi
 }
 
 install_nvidia()
@@ -221,17 +233,18 @@ install_nvidia()
 
 
 ###
-# Parte principal do script
 #
-# Descomentar as categorias que deseja instalar
-######
+#   *** INSTRUÇÕES ***
+#   *** Descomentar as categorias que deseja instalar ***
+#
+############
 
 is_superuser
 is_ubuntu_gnome_64
 
 update_upgrade
 
-# install_base
+install_base
 # install_tools
 # install_apps
 # install_vm
@@ -245,4 +258,3 @@ update_upgrade
 # install_nvidia
 
 remove_clean
-
