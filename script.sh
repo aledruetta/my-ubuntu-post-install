@@ -90,7 +90,10 @@ install_base()
     echo -e "\n###### Instalando pacotes de base ######\n"
 
     apt-get -y install ubuntu-restricted-extras build-essential dkms intel-microcode \
-      linux-firmware
+        linux-firmware cmake language-pack-es language-pack-pt firefox-locale-es \
+        firefox-locale-pt thunderbird-locale-en-us thunderbird-locale-es-ar \
+        thunderbird-locale-pt-br hunspell-es hunspell-pt-br aspell-es \
+        aspell-pt-br
 }
 
 install_tools()
@@ -115,7 +118,7 @@ install_apps()
     echo -e "\n###### Instalando aplicativos gráficos ######\n"
 
     apt-get -y install vlc goldendict meld pyrenamer gimp inkscape mypaint nautilus-dropbox \
-        thunderbird geogebra gelemental agave
+        thunderbird geogebra gelemental agave typecatcher
 }
 
 install_devel()
@@ -220,6 +223,22 @@ install_themes()
     fi
 }
 
+install_powerline()
+{
+    if [[ ! "$(pip list | grep powerline-status)" ]]; then
+        echo -e "\n###### Instalando Powerline ######\n"
+
+        pip install powerline-status psutil
+
+        wget https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf
+        wget https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf
+        mv PowerlineSymbols.otf ~/.local/share/fonts/
+        fc-cache -vf ~/.local/share/fonts/
+        mkdir -p "$HOME/.config/fontconfig/conf.d/"
+        mv 10-powerline-symbols.conf ~/.config/fontconfig/conf.d/
+    fi
+}
+
 install_nvidia()
 {
     if [[ ! -s "/etc/apt/sources.list.d/$NVIDIA_SRC" ]]; then
@@ -244,7 +263,7 @@ is_ubuntu_gnome_64
 
 update_upgrade
 
-install_base
+# install_base
 # install_tools
 # install_apps
 # install_vm
@@ -255,6 +274,7 @@ install_base
 
 # install_chrome
 # install_themes
+# install_powerline
 # install_nvidia
 
 remove_clean
