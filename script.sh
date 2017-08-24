@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+# descomentar para debugging
 # set -eux
 set -eu
 
@@ -92,10 +93,7 @@ install_base()
     echo -e "\n###### Instalando pacotes de base ######\n"
 
     apt-get -y install ubuntu-restricted-extras build-essential dkms intel-microcode \
-        linux-firmware cmake language-pack-es language-pack-pt firefox-locale-es \
-        firefox-locale-pt thunderbird-locale-en-us thunderbird-locale-es-ar \
-        thunderbird-locale-pt-br hunspell-es hunspell-pt-br aspell-es \
-        aspell-pt-br
+        linux-firmware cmake
 }
 
 install_tools()
@@ -120,7 +118,7 @@ install_apps()
     echo -e "\n###### Instalando aplicativos gráficos ######\n"
 
     apt-get -y install vlc goldendict meld pyrenamer gimp inkscape mypaint nautilus-dropbox \
-        thunderbird geogebra gelemental agave typecatcher
+        thunderbird geogebra gelemental agave typecatcher gconf-editor
 }
 
 install_devel()
@@ -132,6 +130,14 @@ install_devel()
     echo -e "\n###### Instalando Atom ######\n"
 
     snap install atom --classic
+}
+
+install_lang()
+{
+    apt-get -y install  language-pack-es language-pack-pt firefox-locale-es \
+        firefox-locale-pt thunderbird-locale-en-us thunderbird-locale-es-ar \
+        thunderbird-locale-pt-br hunspell-es hunspell-pt-br aspell-es \
+        aspell-pt-br
 }
 
 install_vm()
@@ -259,7 +265,7 @@ install_epson()
 
         echo -e "\n# Epson printer\n$EPSON_SRC" >> /etc/apt/sources.list
         apt-get update
-        apt-get -y install epson-inkjet-printer-201207w
+        apt-get -y --allow-unauthenticated install epson-inkjet-printer-201207w
     fi
 }
 
@@ -279,12 +285,12 @@ update_upgrade
 # install_base
 # install_tools
 # install_apps
-# install_vm
 # install_devel
+# install_lang
 
+# install_vm
 # install_js_stack
 # install_py_stack
-
 # install_chrome
 # install_themes
 # install_powerline
