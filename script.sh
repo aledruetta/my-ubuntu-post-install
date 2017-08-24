@@ -118,7 +118,8 @@ install_apps()
     echo -e "\n###### Instalando aplicativos gráficos ######\n"
 
     apt-get -y install vlc goldendict meld pyrenamer gimp inkscape mypaint nautilus-dropbox \
-        thunderbird geogebra gelemental agave typecatcher gconf-editor
+        thunderbird geogebra gelemental agave typecatcher gconf-editor gscan2pdf pdfmod \
+        pdf-shuffler
 }
 
 install_devel()
@@ -264,6 +265,7 @@ install_epson()
         echo -e "\n###### Instalando Epson drivers ######\n"
 
         echo -e "\n# Epson printer\n$EPSON_SRC" >> /etc/apt/sources.list
+        apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E5E86C008AA65D56
         apt-get update
         apt-get -y --allow-unauthenticated install epson-inkjet-printer-201207w
     fi
@@ -284,7 +286,7 @@ update_upgrade
 
 # install_base
 # install_tools
-# install_apps
+install_apps
 # install_devel
 # install_lang
 
