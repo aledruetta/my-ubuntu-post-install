@@ -32,6 +32,8 @@ readonly PAPIRUS_PPA="ppa:papirus/papirus"
 readonly NUMIX_SRC="numix-ubuntu-ppa-xenial.list"
 readonly NUMIX_PPA="ppa:numix/ppa"
 
+readonly EPSON_SRC="deb http://download.ebz.epson.net/dsc/op/stable/debian/ lsb3.2 main"
+
 
 ###
 # Funções
@@ -250,6 +252,15 @@ install_nvidia()
     fi
 }
 
+install_epson()
+{
+    if [[ ! "$(grep "$EPSON_SRC" /etc/apt/sources.list)" ]]; then
+        echo -e "\n# Epson printer\n$EPSON_SRC" >> /etc/apt/sources.list
+        apt-get update
+        apt-get -y install epson-inkjet-printer-201207w
+    fi
+}
+
 
 ###
 #
@@ -276,5 +287,6 @@ update_upgrade
 # install_themes
 # install_powerline
 # install_nvidia
+install_epson
 
 remove_clean
