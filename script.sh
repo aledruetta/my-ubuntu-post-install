@@ -255,6 +255,8 @@ install_nvidia()
 install_epson()
 {
     if [[ ! "$(grep "$EPSON_SRC" /etc/apt/sources.list)" ]]; then
+        echo -e "\n###### Instalando Epson drivers ######\n"
+
         echo -e "\n# Epson printer\n$EPSON_SRC" >> /etc/apt/sources.list
         apt-get update
         apt-get -y install epson-inkjet-printer-201207w
@@ -264,8 +266,8 @@ install_epson()
 
 ###
 #
-#   *** INSTRUÇÕES ***
-#   *** Descomentar as categorias que deseja instalar ***
+#   *** INSTRUÇÕES
+#   *** Descomentar as categorias que deseja instalar
 #
 ############
 
@@ -287,6 +289,6 @@ update_upgrade
 # install_themes
 # install_powerline
 # install_nvidia
-install_epson
+# install_epson
 
 remove_clean
