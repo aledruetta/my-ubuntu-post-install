@@ -119,7 +119,7 @@ install_apps()
 
     apt-get -y install vlc goldendict meld pyrenamer gimp inkscape mypaint nautilus-dropbox \
         thunderbird geogebra gelemental agave typecatcher gconf-editor gscan2pdf pdfmod \
-        pdf-shuffler
+        pdfshuffler
 }
 
 install_devel()
@@ -286,7 +286,7 @@ update_upgrade
 
 # install_base
 # install_tools
-install_apps
+# install_apps
 # install_devel
 # install_lang
 
