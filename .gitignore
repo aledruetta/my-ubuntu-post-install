@@ -1,6 +1,5 @@
 *.sw[pon]
 Miniconda*.sh
 nodesource*.sh
-vagrant*.deb
-google*.deb
+*.deb
 *powerline*
