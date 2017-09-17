@@ -13,25 +13,19 @@ readonly CODENAME="$(lsb_release -cs)"
 readonly DESK_ENV="$(env | grep DESKTOP_SESSION= | cut -d'=' -f2)"
 readonly ARQ_PROC="$(getconf LONG_BIT)"
 
-readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
-readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
+# readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
+# readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
 
 readonly MINICONDA_SCRIPT="Miniconda3-latest-Linux-x86_64.sh"
 readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
 
 readonly VBOX_PPA="deb http://download.virtualbox.org/virtualbox/debian xenial contrib"
 
-readonly VAGRANT_PKG="vagrant_1.9.7_x86_64.deb"
+readonly VAGRANT_PKG="vagrant_*_x86_64.deb"
 readonly VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.9.7/$VAGRANT_PKG"
 
 readonly CHROME_PKG="google-chrome-stable_current_amd64.deb"
 readonly CHROME_URL="https://dl.google.com/linux/direct/$CHROME_PKG"
-
-readonly PAPIRUS_SRC="papirus-ubuntu-papirus-xenial.list"
-readonly PAPIRUS_PPA="ppa:papirus/papirus"
-
-readonly NUMIX_SRC="numix-ubuntu-ppa-xenial.list"
-readonly NUMIX_PPA="ppa:numix/ppa"
 
 readonly EPSON_SRC="deb http://download.ebz.epson.net/dsc/op/stable/debian/ lsb3.2 main"
 
@@ -119,7 +113,7 @@ install_apps()
 
     apt-get -y install vlc goldendict meld pyrenamer inkscape mypaint nemo-dropbox \
         thunderbird geogebra gelemental agave typecatcher gscan2pdf pdfmod \
-        pdfshuffler
+        pdfshuffler fonts-hack-ttf
 }
 
 install_devel()
@@ -127,6 +121,8 @@ install_devel()
     echo -e "\n###### Instalando development tools ######\n"
 
     apt-get -y install vim-nox git tmux shellcheck openjdk-8-jdk
+    wget https://atom.io/download/deb -O atom-amd64.deb
+    dpkg -i atom-amd64.deb
 
 }
 
@@ -210,25 +206,6 @@ install_chrome()
     fi
 }
 
-install_themes()
-{
-    if [[ ! -s "/etc/apt/sources.list.d/$PAPIRUS_SRC" ]]; then
-        echo -e "\n###### Instalando Papirus Icon Theme ######\n"
-
-        add-apt-repository -y "$PAPIRUS_PPA"
-        apt-get update
-        apt-get -y install papirus-icon-theme
-    fi
-
-    if [[ ! -s "/etc/apt/sources.list.d/$NUMIX_SRC" ]]; then
-        echo -e "\n###### Instalando Numix Theme ######\n"
-
-        add-apt-repository -y "$NUMIX_PPA"
-        apt-get update
-        apt-get -y install numix-icon-theme numix-gtk-theme numix-folders
-    fi
-}
-
 install_powerline()
 {
     if [[ ! "$(pip list | grep powerline-status)" ]]; then
@@ -245,16 +222,16 @@ install_powerline()
     fi
 }
 
-install_nvidia()
-{
-    if [[ ! -s "/etc/apt/sources.list.d/$NVIDIA_SRC" ]]; then
-        echo -e "\n###### Instalando Nvidia drivers ######\n"
-
-        add-apt-repository -y "$NVIDIA_PPA"
-        apt-get update
-        apt-get install nvidia-378 nvidia-opencl-icd-378 nvidia-prime nvidia-settings
-    fi
-}
+# install_nvidia()
+# {
+#     if [[ ! -s "/etc/apt/sources.list.d/$NVIDIA_SRC" ]]; then
+#         echo -e "\n###### Instalando Nvidia drivers ######\n"
+#
+#         add-apt-repository -y "$NVIDIA_PPA"
+#         apt-get update
+#         apt-get install nvidia-378 nvidia-opencl-icd-378 nvidia-prime nvidia-settings
+#     fi
+# }
 
 install_epson()
 {
@@ -300,10 +277,9 @@ is_ubuntu_gnome_64
 # install_js_stack
 # install_py_stack
 # install_chrome
-# install_themes
 # install_powerline
 # install_nvidia
 # install_epson
-install_spotify
+# install_spotify
 
 # remove_clean
