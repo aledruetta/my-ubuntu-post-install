@@ -41,7 +41,7 @@ is_superuser()
     echo -e "\n###### Verificando superusuário e variáveis de ambiente ######\n"
 
     if [[ "$(id -u)" -ne 0 ]] || [[ -z "$DESK_ENV" ]] || \
-        [[ "$(echo "$PATH" | grep -co games)" -eq 0 ]]
+        [[ "$(echo "$PATH" | grep -c games)" -eq 0 ]]
     then
         echo "Executar o script como superusuário (sudo)"
         echo "e preservando as variáveis de ambiente (opção -E):"
@@ -71,8 +71,7 @@ update_upgrade()
 {
     echo -e "\n###### Update & Upgrade ######\n"
 
-    apt-get update
-    apt-get -y dist-upgrade
+    apt-get update && apt-get -y dist-upgrade || exit 1
 }
 
 remove_clean()
@@ -165,9 +164,12 @@ install_js_stack()
         echo -e "\n###### Instalando Node.js ######\n"
 
         curl -sSL https://deb.nodesource.com/setup_6.x -o nodesource_setup.sh
-        bash nodesource_setup.sh
-        apt-get -y install nodejs
-        npm install npm@latest -g
+        if [[ $? -eq 0 ]]; then
+            bash nodesource_setup.sh && apt-get -y install nodejs \
+                && npm install npm@latest -g
+        else
+          echo "Error: Node.js can't been installed!"
+        fi
     fi
 
     if [[ ! "$(dpkg -l mongodb-org)" ]]; then
@@ -175,8 +177,7 @@ install_js_stack()
 
         apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6
         echo "deb [ arch=amd64,arm64 ] http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/3.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-3.4.list
-        apt-get update
-        apt-get install -y mongodb-org
+        apt-get update && apt-get install -y mongodb-org
     fi
 }
 
@@ -240,8 +241,7 @@ install_epson()
 
         echo -e "\n# Epson printer\n$EPSON_SRC" >> /etc/apt/sources.list
         apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E5E86C008AA65D56
-        apt-get update
-        apt-get -y install epson-inkjet-printer-201207w
+        apt-get update && apt-get -y install epson-inkjet-printer-201207w
     fi
 }
 
@@ -250,8 +250,7 @@ install_spotify()
     if [[ "$(grep -c "SPOTIFY_SRC" /etc/apt/sources.list)" -eq 0 ]]; then
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys BBEBDCB318AD50EC6865090613B00F1FD2C19886 0DF731E45CE24F27EEEB1450EFDC8610341D9410
         echo deb http://repository.spotify.com stable non-free | sudo tee /etc/apt/sources.list.d/spotify.list
-        sudo apt-get update
-        sudo apt-get install spotify-client
+        sudo apt-get update && sudo apt-get install spotify-client
     fi
 }
 
@@ -283,3 +282,5 @@ is_ubuntu_gnome_64
 # install_spotify
 
 # remove_clean
+
+exit 0
