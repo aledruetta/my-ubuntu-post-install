@@ -41,7 +41,7 @@ is_superuser()
     echo -e "\n###### Verificando superusuário e variáveis de ambiente ######\n"
 
     if [[ "$(id -u)" -ne 0 ]] || [[ -z "$DESK_ENV" ]] || \
-        [[ ! "$(echo "$PATH" | grep -o games)" ]]
+        [[ "$(echo "$PATH" | grep -co games)" -eq 0 ]]
     then
         echo "Executar o script como superusuário (sudo)"
         echo "e preservando as variáveis de ambiente (opção -E):"
@@ -97,7 +97,7 @@ install_tools()
 
     apt-get -y install tree iotop glances p7zip-full p7zip-rar
 
-    if [[ "$(ufw status | grep inactive)" ]]; then
+    if [[ "$(ufw status | grep -c inactive)" -ne 0 ]]; then
 
         echo -e "\n###### Configurando UFW  ######\n"
 
@@ -139,7 +139,7 @@ install_vm()
     if [[ ! "$(dpkg -l virtualbox-5.1)" ]]; then
         echo -e "\n###### Instalando VirtualBox ######\n"
 
-        if [[ ! "$(grep "$VBOX_PPA" /etc/apt/sources.list)" ]]; then
+        if [[ "$(grep -c "$VBOX_PPA" /etc/apt/sources.list)" -eq 0 ]]; then
             echo -e "\n# VirtualBox" >> /etc/apt/sources.list
             echo "deb http://download.virtualbox.org/virtualbox/debian xenial contrib" >> /etc/apt/sources.list
             wget -q https://www.virtualbox.org/download/oracle_vbox_2016.asc -O- | sudo apt-key add -
@@ -208,7 +208,7 @@ install_chrome()
 
 install_powerline()
 {
-    if [[ ! "$(pip list | grep powerline-status)" ]]; then
+    if [[ "$(pip list | grep -c powerline-status)" -eq 0 ]]; then
         echo -e "\n###### Instalando Powerline ######\n"
 
         pip install powerline-status psutil
@@ -235,7 +235,7 @@ install_powerline()
 
 install_epson()
 {
-    if [[ ! "$(grep "$EPSON_SRC" /etc/apt/sources.list)" ]]; then
+    if [[ "$(grep -c "$EPSON_SRC" /etc/apt/sources.list)" -eq 0 ]]; then
         echo -e "\n###### Instalando Epson drivers ######\n"
 
         echo -e "\n# Epson printer\n$EPSON_SRC" >> /etc/apt/sources.list
@@ -247,7 +247,7 @@ install_epson()
 
 install_spotify()
 {
-    if [[ ! "$(grep "SPOTIFY_SRC" /etc/apt/sources.list)" ]]; then
+    if [[ "$(grep -c "SPOTIFY_SRC" /etc/apt/sources.list)" -eq 0 ]]; then
         sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys BBEBDCB318AD50EC6865090613B00F1FD2C19886 0DF731E45CE24F27EEEB1450EFDC8610341D9410
         echo deb http://repository.spotify.com stable non-free | sudo tee /etc/apt/sources.list.d/spotify.list
         sudo apt-get update
