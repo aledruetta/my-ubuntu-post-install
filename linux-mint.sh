@@ -1,28 +1,39 @@
 #!/usr/bin/env bash
 
 # descomentar para debugging
-# set -eux
-set -eu
+set -eux
+# set -eu
 
 
 ###
 # Constantes
 ############
 
-readonly CODENAME="$(lsb_release -cs)"
-readonly DESK_ENV="$(env | grep DESKTOP_SESSION= | cut -d'=' -f2)"
-readonly ARQ_PROC="$(getconf LONG_BIT)"
+readonly USER_1000="$(id -nu 1000)"
 
-# readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
-# readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
+readonly ARDUINO_TAR="$(curl -s https://www.arduino.cc/en/Main/Software | grep -o 'arduino-.\..\..-linux64').tar.xz"
+readonly ARDUINO_DIR="$(echo "$ARDUINO_TAR" | grep -o 'arduino-.\..\..')"
+readonly ARDUINO_URL="https://downloads.arduino.cc/${ARDUINO_TAR}"
+
+readonly UBUNTU="xenial"
+readonly CODENAME="$(lsb_release -cs)"
+readonly ARQ_PROC="$(getconf LONG_BIT)"
+readonly DESKTOP="$(env | grep '^DESKTOP_SESSION=' | cut -d= -f2)"
+
+readonly JAVA_PPA="ppa:webupd8team/java"
+readonly JAVA_SRC="webupd8team-java-xenial.list"
+
+readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
+readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
 
 readonly MINICONDA_SCRIPT="Miniconda3-latest-Linux-x86_64.sh"
 readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
 
-readonly VBOX_PPA="deb http://download.virtualbox.org/virtualbox/debian xenial contrib"
+readonly VBOX_PPA="deb http://download.virtualbox.org/virtualbox/debian $UBUNTU contrib"
 
-readonly VAGRANT_PKG="vagrant_*_x86_64.deb"
-readonly VAGRANT_URL="https://releases.hashicorp.com/vagrant/1.9.7/$VAGRANT_PKG"
+readonly VAGRANT_VER="2.1.1"
+readonly VAGRANT_PKG="vagrant_${VAGRANT_VER}_x86_64.deb"
+readonly VAGRANT_URL="https://releases.hashicorp.com/vagrant/$VAGRANT_VER/$VAGRANT_PKG"
 
 readonly CHROME_PKG="google-chrome-stable_current_amd64.deb"
 readonly CHROME_URL="https://dl.google.com/linux/direct/$CHROME_PKG"
@@ -40,7 +51,7 @@ is_superuser()
 {
     echo -e "\n###### Verificando superusuário e variáveis de ambiente ######\n"
 
-    if [[ "$(id -u)" -ne 0 ]] || [[ -z "$DESK_ENV" ]] || \
+    if [[ "$(id -u)" -ne 0 ]] || [[ -z "$DESKTOP" ]] || \
         [[ "$(echo "$PATH" | grep -c games)" -eq 0 ]]
     then
         echo "Executar o script como superusuário (sudo)"
@@ -52,15 +63,15 @@ is_superuser()
     fi
 }
 
-is_ubuntu_gnome_64()
+is_linux_mint()
 {
     echo -e "\n###### Verificando OS ######\n"
 
-    if [[ "$CODENAME" != "sonya" ]] || [[ "$DESK_ENV" != "cinnamon" ]] || \
+    if [[ "$CODENAME" != "sylvia" ]] || [[ "$DESKTOP" != "cinnamon" ]] || \
         [[ "$ARQ_PROC" -ne 64 ]]
     then
-        echo "Script post-install para Ubuntu Gnome 16.04 LTS 64-bit"
-        echo "Versão do sistema incompatível"
+        echo "Script post-install para Linux Mint 18.3 Sylvia 64-bit"
+        echo "Versão do sistema incompatível: $CODENAME"
         exit 1
     else
         echo "Ok!"
@@ -71,7 +82,7 @@ update_upgrade()
 {
     echo -e "\n###### Update & Upgrade ######\n"
 
-    apt-get update && apt-get -y dist-upgrade || exit 1
+    (apt-get update && apt-get -y full-upgrade) || exit 1
 }
 
 remove_clean()
@@ -83,19 +94,18 @@ remove_clean()
     apt-get -y clean
 }
 
-install_base()
-{
-    echo -e "\n###### Instalando pacotes de base ######\n"
-
-    apt-get -y install build-essential cmake
-}
-
 install_tools()
 {
     echo -e "\n###### Instalando ferramentas de linha de comando ######\n"
 
-    apt-get -y install tree iotop glances p7zip-full p7zip-rar
+    apt-get -y install build-essential cmake
+    apt-get -y install p7zip-full p7zip-rar
+    apt-get -y install atop iotop iftop glances tree
+    apt-get -y install vim-nox git tmux shellcheck
+}
 
+enable_firewall()
+{
     if [[ "$(ufw status | grep -c inactive)" -ne 0 ]]; then
 
         echo -e "\n###### Configurando UFW  ######\n"
@@ -110,24 +120,60 @@ install_apps()
 {
     echo -e "\n###### Instalando aplicativos gráficos ######\n"
 
-    apt-get -y install vlc goldendict meld pyrenamer inkscape mypaint nemo-dropbox \
-        thunderbird geogebra gelemental agave typecatcher gscan2pdf pdfmod \
-        pdfshuffler fonts-hack-ttf
+    apt-get -y install ubuntu-restricted-extras
+    apt-get -y install vlc gimp inkscape mypaint agave
+    apt-get -y install openscad openscad-mcad freecad freecad-doc
+    apt-get -y install gscan2pdf pdfmod pdfshuffler
+    apt-get -y install ttf-mscorefonts-installer fonts-hack-ttf typecatcher
+    apt-get -y install nemo-dropbox thunderbird goldendict gelemental
+    apt-get -y install meld pyrenamer
 }
 
-install_devel()
+install_oracle_java()
 {
-    echo -e "\n###### Instalando development tools ######\n"
+    if [[ ! -s "/etc/apt/sources.list.d/$JAVA_SRC" ]]; then
+        add-apt-repository -y "$JAVA_PPA"
+        apt-get update
+        echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections
+        echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 seen  true" | debconf-set-selections
+        apt-get -y install oracle-java8-installer
+        echo 0 | update-alternatives --config java
+        echo 0 | update-alternatives --config javac
+        echo "JAVA_HOME=\"/usr/lib/jvm/java-8-oracle\"" >> /etc/environment
+        source /etc/environment
+        java -version
+        javac -version
+        echo "$JAVA_HOME"
+    fi
+}
 
-    apt-get -y install vim-nox git tmux shellcheck openjdk-8-jdk
+install_atom()
+{
+    echo -e "\n###### Instalando Atom IDE ######\n"
+
     wget https://atom.io/download/deb -O atom-amd64.deb
     dpkg -i atom-amd64.deb
+}
 
+install_arduino()
+{
+    echo -e "\n###### Instalando Arduino IDE ######\n"
+
+    if [[ ! -s "$ARDUINO_TAR" ]]; then
+        sudo -H -u "$USER_1000" wget "$ARDUINO_URL"
+        tar -xJf "$ARDUINO_TAR"
+
+        sudo -H -u "$USER_1000" ./"$ARDUINO_DIR"/install.sh
+        usermod -a -G dialout "$USER_1000"
+
+        rm -rf "$ARDUINO_DIR"
+    fi
 }
 
 install_lang()
 {
     apt-get -y install  language-pack-es language-pack-pt firefox-locale-es \
+        language-pack-gnome-pt language-pack-gnome-es \
         firefox-locale-pt thunderbird-locale-en-us thunderbird-locale-es-ar \
         thunderbird-locale-pt-br hunspell-es hunspell-pt-br aspell-es \
         aspell-pt-br
@@ -135,7 +181,7 @@ install_lang()
 
 install_vm()
 {
-    if [[ ! "$(dpkg -l virtualbox-5.1)" ]]; then
+    if [[ ! "$(dpkg -l virtualbox-5.2)" ]]; then
         echo -e "\n###### Instalando VirtualBox ######\n"
 
         if [[ "$(grep -c "$VBOX_PPA" /etc/apt/sources.list)" -eq 0 ]]; then
@@ -145,14 +191,14 @@ install_vm()
             apt-get -y update
         fi
 
-        apt-get -y install virtualbox-5.1
+        apt-get -y install virtualbox-5.2
     fi
 
     if [[ ! "$(dpkg -l vagrant)" ]]; then
         echo -e "\n###### Instalando Vagrant ######\n"
 
         if [[ ! -s "./$VAGRANT_PKG" ]]; then
-            wget "$VAGRANT_URL"
+            sudo -H -u "$USER_1000" wget "$VAGRANT_URL"
         fi
         dpkg -i ./"$VAGRANT_PKG"
     fi
@@ -223,21 +269,23 @@ install_powerline()
     fi
 }
 
-# install_nvidia()
-# {
-#     if [[ ! -s "/etc/apt/sources.list.d/$NVIDIA_SRC" ]]; then
-#         echo -e "\n###### Instalando Nvidia drivers ######\n"
-#
-#         add-apt-repository -y "$NVIDIA_PPA"
-#         apt-get update
-#         apt-get install nvidia-378 nvidia-opencl-icd-378 nvidia-prime nvidia-settings
-#     fi
-# }
+install_nvidia()
+{
+    if [[ ! -s "/etc/apt/sources.list.d/$NVIDIA_SRC" ]]; then
+        echo -e "\n###### Instalando Nvidia drivers ######\n"
+
+        add-apt-repository -y "$NVIDIA_PPA"
+        apt-get update
+        ubuntu-drivers devices
+        # ubuntu-drivers autoinstall
+        apt-get -y install nvidia-390 nvidia-settings nvidia-prime
+    fi
+}
 
 install_epson()
 {
     if [[ "$(grep -c "$EPSON_SRC" /etc/apt/sources.list)" -eq 0 ]]; then
-        echo -e "\n###### Instalando Epson drivers ######\n"
+        echo -e "\n###### Instalando Epson L355 drivers ######\n"
 
         echo -e "\n# Epson printer\n$EPSON_SRC" >> /etc/apt/sources.list
         apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E5E86C008AA65D56
@@ -262,24 +310,30 @@ install_spotify()
 ############
 
 is_superuser
-is_ubuntu_gnome_64
+is_linux_mint
 
+# enable_firewall
 # update_upgrade
 
-# install_base
 # install_tools
 # install_apps
-# install_devel
-# install_lang
 
-# install_vm
-# install_js_stack
-# install_py_stack
-# install_chrome
+    ### devel ###
+    # install_oracle_java
+    # install_js_stack
+    # install_py_stack
+    # install_atom
+    # install_arduino
+    # install_vm
+
+    ### drivers ###
+    # install_nvidia
+    # install_epson
+
 # install_powerline
-# install_nvidia
-# install_epson
+# install_chrome
 # install_spotify
+# install_lang
 
 # remove_clean
 
