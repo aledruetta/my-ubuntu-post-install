@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
-# descomentar para debugging
+# for debugging
 set -eux
+
+# for production
 # set -eu
 
 
@@ -10,24 +12,17 @@ set -eux
 ############
 
 readonly USER_1000="$(id -nu 1000)"
-
-readonly ARDUINO_TAR="$(curl -s https://www.arduino.cc/en/Main/Software | grep -o 'arduino-.\..\..-linux64').tar.xz"
-readonly ARDUINO_DIR="$(echo "$ARDUINO_TAR" | grep -o 'arduino-.\..\..')"
-readonly ARDUINO_URL="https://downloads.arduino.cc/${ARDUINO_TAR}"
-
 readonly UBUNTU="xenial"
 readonly CODENAME="$(lsb_release -cs)"
 readonly ARQ_PROC="$(getconf LONG_BIT)"
 readonly DESKTOP="$(env | grep '^DESKTOP_SESSION=' | cut -d= -f2)"
 
+readonly ARDUINO_TAR="$(curl -s https://www.arduino.cc/en/Main/Software | grep -o 'arduino-.\..\..-linux64').tar.xz"
+readonly ARDUINO_DIR="$(echo "$ARDUINO_TAR" | grep -o 'arduino-.\..\..')"
+readonly ARDUINO_URL="https://downloads.arduino.cc/${ARDUINO_TAR}"
+
 readonly JAVA_PPA="ppa:webupd8team/java"
 readonly JAVA_SRC="webupd8team-java-xenial.list"
-
-# readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
-# readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
-
-# readonly MINICONDA_SCRIPT="Miniconda3-latest-Linux-x86_64.sh"
-# readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
 
 readonly VBOX_PPA="deb http://download.virtualbox.org/virtualbox/debian $UBUNTU contrib"
 
@@ -35,10 +30,16 @@ readonly VAGRANT_VER="2.1.1"
 readonly VAGRANT_PKG="vagrant_${VAGRANT_VER}_x86_64.deb"
 readonly VAGRANT_URL="https://releases.hashicorp.com/vagrant/$VAGRANT_VER/$VAGRANT_PKG"
 
+readonly EPSON_SRC="deb http://download.ebz.epson.net/dsc/op/stable/debian/ lsb3.2 main"
+
+# readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
+# readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
+
+# readonly MINICONDA_SCRIPT="Miniconda3-latest-Linux-x86_64.sh"
+# readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
+
 # readonly CHROME_PKG="google-chrome-stable_current_amd64.deb"
 # readonly CHROME_URL="https://dl.google.com/linux/direct/$CHROME_PKG"
-
-readonly EPSON_SRC="deb http://download.ebz.epson.net/dsc/op/stable/debian/ lsb3.2 main"
 
 # readonly SPOTIFY_SRC="spotify.list"
 
@@ -98,10 +99,10 @@ install_tools()
 {
     echo -e "\n###### Instalando ferramentas de linha de comando ######\n"
 
-    apt-get -y install build-essential cmake
-    apt-get -y install p7zip-full p7zip-rar
-    apt-get -y install atop iotop iftop glances tree
-    apt-get -y install vim-nox git tmux shellcheck
+    apt-get -y install build-essential cmake \
+        p7zip-full p7zip-rar \
+        atop iotop iftop glances tree \
+        vim-nox git tmux shellcheck
 }
 
 enable_firewall()
@@ -120,13 +121,13 @@ install_apps()
 {
     echo -e "\n###### Instalando aplicativos gráficos ######\n"
 
-    apt-get -y install ubuntu-restricted-extras
-    apt-get -y install vlc gimp inkscape mypaint agave
-    apt-get -y install openscad openscad-mcad freecad freecad-doc
-    apt-get -y install gscan2pdf pdfmod pdfshuffler
-    apt-get -y install ttf-mscorefonts-installer fonts-hack-ttf typecatcher
-    apt-get -y install nemo-dropbox thunderbird goldendict gelemental
-    apt-get -y install meld pyrenamer
+    apt-get -y install ubuntu-restricted-extras \
+        vlc gimp inkscape mypaint agave \
+        openscad openscad-mcad freecad freecad-doc \
+        gscan2pdf pdfmod pdfshuffler \
+        ttf-mscorefonts-installer fonts-hack-ttf typecatcher \
+        nemo-dropbox thunderbird goldendict gelemental \
+        meld pyrenamer cryptkeeper
 }
 
 install_oracle_java()
@@ -172,11 +173,12 @@ install_arduino()
 
 install_lang()
 {
-    apt-get -y install  language-pack-es language-pack-pt firefox-locale-es \
+    apt-get -y install language-pack-es language-pack-pt \
         language-pack-gnome-pt language-pack-gnome-es \
-        firefox-locale-pt thunderbird-locale-en-us thunderbird-locale-es-ar \
-        thunderbird-locale-pt-br hunspell-es hunspell-pt-br aspell-es \
-        aspell-pt-br
+        firefox-locale-es firefox-locale-pt \
+        thunderbird-locale-en-us thunderbird-locale-es-ar thunderbird-locale-pt-br \
+        hunspell-es hunspell-pt-br /
+        aspell-es aspell-pt-br
 }
 
 install_vm()
