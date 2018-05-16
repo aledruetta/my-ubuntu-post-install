@@ -23,11 +23,11 @@ readonly DESKTOP="$(env | grep '^DESKTOP_SESSION=' | cut -d= -f2)"
 readonly JAVA_PPA="ppa:webupd8team/java"
 readonly JAVA_SRC="webupd8team-java-xenial.list"
 
-readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
-readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
+# readonly NVIDIA_PPA="ppa:graphics-drivers/ppa"
+# readonly NVIDIA_SRC="graphics-drivers-ubuntu-ppa-xenial.list"
 
-readonly MINICONDA_SCRIPT="Miniconda3-latest-Linux-x86_64.sh"
-readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
+# readonly MINICONDA_SCRIPT="Miniconda3-latest-Linux-x86_64.sh"
+# readonly MINICONDA_URL="https://repo.continuum.io/miniconda/$MINICONDA_SCRIPT"
 
 readonly VBOX_PPA="deb http://download.virtualbox.org/virtualbox/debian $UBUNTU contrib"
 
@@ -35,12 +35,12 @@ readonly VAGRANT_VER="2.1.1"
 readonly VAGRANT_PKG="vagrant_${VAGRANT_VER}_x86_64.deb"
 readonly VAGRANT_URL="https://releases.hashicorp.com/vagrant/$VAGRANT_VER/$VAGRANT_PKG"
 
-readonly CHROME_PKG="google-chrome-stable_current_amd64.deb"
-readonly CHROME_URL="https://dl.google.com/linux/direct/$CHROME_PKG"
+# readonly CHROME_PKG="google-chrome-stable_current_amd64.deb"
+# readonly CHROME_URL="https://dl.google.com/linux/direct/$CHROME_PKG"
 
 readonly EPSON_SRC="deb http://download.ebz.epson.net/dsc/op/stable/debian/ lsb3.2 main"
 
-readonly SPOTIFY_SRC="spotify.list"
+# readonly SPOTIFY_SRC="spotify.list"
 
 
 ###
@@ -271,15 +271,18 @@ install_powerline()
 
 install_nvidia()
 {
-    if [[ ! -s "/etc/apt/sources.list.d/$NVIDIA_SRC" ]]; then
-        echo -e "\n###### Instalando Nvidia drivers ######\n"
+    ubuntu-drivers devices
+    ubuntu-drivers autoinstall
 
-        add-apt-repository -y "$NVIDIA_PPA"
-        apt-get update
-        ubuntu-drivers devices
-        # ubuntu-drivers autoinstall
-        apt-get -y install nvidia-390 nvidia-settings nvidia-prime
-    fi
+    # if [[ ! -s "/etc/apt/sources.list.d/$NVIDIA_SRC" ]]; then
+    #     echo -e "\n###### Instalando Nvidia drivers ######\n"
+
+    #     add-apt-repository -y "$NVIDIA_PPA"
+    #     apt-get update
+    #     ubuntu-drivers devices
+    #     ubuntu-drivers autoinstall
+    #     apt-get -y install nvidia-390 nvidia-settings nvidia-prime
+    # fi
 }
 
 install_epson()
