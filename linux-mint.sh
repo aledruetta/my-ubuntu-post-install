@@ -20,6 +20,7 @@ readonly DESKTOP="$(env | grep '^DESKTOP_SESSION=' | cut -d= -f2)"
 readonly ARDUINO_TAR="$(curl -s https://www.arduino.cc/en/Main/Software | grep -o 'arduino-.\..\..-linux64').tar.xz"
 readonly ARDUINO_DIR="$(echo "$ARDUINO_TAR" | grep -o 'arduino-.\..\..')"
 readonly ARDUINO_URL="https://downloads.arduino.cc/${ARDUINO_TAR}"
+readonly ARDUINO_ICO="/home/$USER_1000/Desktop/arduino-arduinoide.desktop"
 
 readonly JAVA_PPA="ppa:webupd8team/java"
 readonly JAVA_SRC="webupd8team-java-xenial.list"
@@ -166,6 +167,9 @@ install_arduino()
 
         sudo -H -u "$USER_1000" ./"$ARDUINO_DIR"/install.sh
         usermod -a -G dialout "$USER_1000"
+
+        chown "$USER_1000"."$USER_1000" "$ARDUINO_ICO"
+        chmod 0755 "$ARDUINO_ICO"
 
         rm -rf "$ARDUINO_DIR"
     fi
