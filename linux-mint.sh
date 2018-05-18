@@ -22,6 +22,9 @@ readonly ARDUINO_DIR="$(echo "$ARDUINO_TAR" | grep -o 'arduino-.\..\..')"
 readonly ARDUINO_URL="https://downloads.arduino.cc/${ARDUINO_TAR}"
 readonly ARDUINO_ICO="/home/$USER_1000/Desktop/arduino-arduinoide.desktop"
 
+readonly KICAD_PPA="ppa:js-reynaud/kicad-4"
+readonly KICAD_SRC="js-reynaud-kicad-4-xenial.list"
+
 readonly JAVA_PPA="ppa:webupd8team/java"
 readonly JAVA_SRC="webupd8team-java-xenial.list"
 
@@ -175,8 +178,21 @@ install_arduino()
     fi
 }
 
+install_kicad()
+{
+    echo -e "\n###### Instalando KiCad ######\n"
+
+    if [[ ! "$(dpkg -l kicad)" ]] && [[ ! -s "$KICAD_SRC" ]]; then
+        add-apt-repository -y "$KICAD_PPA"
+        apt-get update
+        apt-get install kicad
+    fi
+}
+
 install_lang()
 {
+    echo -e "\n###### Instalando Pacotes de Idiomas ######\n"
+
     apt-get -y install language-pack-es language-pack-pt \
         language-pack-gnome-pt language-pack-gnome-es \
         firefox-locale-es firefox-locale-pt \
@@ -333,6 +349,7 @@ is_linux_mint
     # install_py_stack
     # install_atom
     # install_arduino
+    install_kicad
     # install_vm
 
     ### drivers ###
